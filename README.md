@@ -1,5 +1,4 @@
-HanArduino
-==========
+# HanArduino
 
 Based upon the Arduino hardware, HanArduino provides control of various home automation eqipment through a message-based, RESTful web service. 
 
