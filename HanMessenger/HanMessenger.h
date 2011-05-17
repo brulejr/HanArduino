@@ -35,10 +35,12 @@ extern "C" {
   typedef void (*messengerCallbackFunction)(void);
 }
 
+#define DEFAULT_COMMAND_SEPARATOR ';'
+#define DEFAULT_FIELD_SEPARATOR ' '
+#define DEFAULT_TIMEOUT 5000    // Abandon incomplete messages if nothing heard after 5 seconds
 #define MAXCALLBACKS 50         // The maximum number of unique commands
 #define MAX_COMMAND_LENGTH 16
 #define MESSENGERBUFFERSIZE 64  // The maximum length of the buffer (defaults to 64)
-#define DEFAULT_TIMEOUT 5000    // Abandon incomplete messages if nothing heard after 5 seconds
 
 enum {
   kCOMM_ERROR    = 000,  // Report serial port comm error back to the PC
@@ -98,9 +100,9 @@ protected:
 
 public:
   HanMessenger();
-  HanMessenger(Stream &cstream);
-  HanMessenger(Stream &cstream, char fldSeparator);
-  HanMessenger(Stream &cstream, char fldSeparator, char cmdSeparator);
+  HanMessenger(Stream &stream, 
+               char fieldSeparator = DEFAULT_FIELD_SEPARATOR,
+               char commandSeparator = DEFAULT_COMMAND_SEPARATOR);
 
   void attach(messengerCallbackFunction newFunction);
   void attach(byte msgId, messengerCallbackFunction newFunction);

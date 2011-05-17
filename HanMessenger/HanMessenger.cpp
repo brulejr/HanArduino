@@ -52,19 +52,13 @@ char HanMessenger::messages[MAXCALLBACKS][MAX_COMMAND_LENGTH] = {
 // Constructs a default messenger using the Serial stream
 //
 HanMessenger::HanMessenger() {
-  init(Serial, ' ', ';');
+  init(Serial, DEFAULT_FIELD_SEPARATOR, DEFAULT_COMMAND_SEPARATOR);
 }
 
-HanMessenger::HanMessenger(Stream &stream) {
-  init(stream, ' ', ';');
-}
-
-HanMessenger::HanMessenger(Stream &stream, char fldSeparator) {
-  init(stream, fldSeparator, ';');
-}
-
-HanMessenger::HanMessenger(Stream &stream, char fldSeparator, char cmdSeparator) {
-  init(stream, fldSeparator, cmdSeparator);
+HanMessenger::HanMessenger(
+  Stream &stream, char fieldSeparator, char commandSeparator
+) {
+  init(stream, fieldSeparator, commandSeparator);
 }
 
 /******************************************************************************
