@@ -92,8 +92,10 @@ uint8_t HanMessenger::available() {
 boolean HanMessenger::blockedTillReply(int timeout) {
   unsigned long start = millis();
   unsigned long time = start;
-  while(!stream->available() || (start - time) > timeout)
+  while(!stream->available() || (start - time) > timeout) {
     time = millis();
+  }
+  return (start - time) > timeout;
 }
 
 //------------------------------------------------------------------------------
@@ -135,8 +137,9 @@ void HanMessenger::discard_LF_CR() {
 
 //------------------------------------------------------------------------------
 void HanMessenger::feedinSerialData() {
-  while ( !pauseProcessing && stream->available( ) ) 
+  while (!pauseProcessing && stream->available( ))  {
     process(stream->read( ) );
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -149,10 +152,15 @@ void HanMessenger::handleMessage() {
   //Serial << "ID+" << id << endl;
   // Because readInt() can fail and return a 0 we can't
   // start our array index at that number
-  if (id > 0 && id <= MAXCALLBACKS && callbackList[id-1] != NULL)
+  if (id > 0 && id <= MAXCALLBACKS && callbackList[id - 1] != NULL) {
     (*callbackList[id-1])();
-  else // Cmd not registered default callback
+  }
+
+  // Cmd not registered default callback
+  else  {
     (*default_callback)();
+  }
+
 }
 
 //------------------------------------------------------------------------------
@@ -166,7 +174,7 @@ void HanMessenger::init(Stream &cstream, char fldSeparator, char cmdSeparator) {
   commandSeparator = cmdSeparator;
 
   bufferLength = MESSENGERBUFFERSIZE;
-  bufferLastIndex = MESSENGERBUFFERSIZE -1;
+  bufferLastIndex = MESSENGERBUFFERSIZE - 1;
   reset();
 
   default_callback = NULL;
@@ -178,23 +186,23 @@ void HanMessenger::init(Stream &cstream, char fldSeparator, char cmdSeparator) {
 
 //------------------------------------------------------------------------------
 uint8_t HanMessenger::next() {
-  char *temppointer= NULL;
+  char *temppointer = NULL;
 
   // Currently, cmd messenger only supports 1 char for the field seperator
-  const char seperator_tokens[] = { fieldSeparator,'\0' };
+  const char seperator_tokens[] = { fieldSeparator, '\0' };
   switch (messageState) {
     case 0:
-    return 0;
+      return 0;
     case 1:
-    temppointer = buffer;
-    messageState = 2;
+      temppointer = buffer;
+      messageState = 2;
     default:
-    if (dumped)
-      current = strtok_r(temppointer,seperator_tokens,&last);
-    if (current != NULL) {
-      dumped = 0;
-      return 1; 
-    }
+      if (dumped)
+        current = strtok_r(temppointer,seperator_tokens,&last);
+      if (current != NULL) {
+        dumped = 0;
+        return 1; 
+      }
   }
   return 0;
 }
@@ -213,20 +221,24 @@ uint8_t HanMessenger::process(int serialByte) {
 
     // Currently, cmd messenger only supports 1 char for the command seperator
     if (serialChar == commandSeparator) {
-      buffer[bufferIndex]=0;
+      buffer[bufferIndex] = 0;
       if (bufferIndex > 0) {
         messageState = 1;
         current = buffer;
       }
       reset();
     } else {
-      buffer[bufferIndex]=serialByte;
+      buffer[bufferIndex] = serialByte;
       bufferIndex++;
-      if (bufferIndex >= bufferLastIndex) reset();
+      if (bufferIndex >= bufferLastIndex) {
+        reset();
+      }
 
-      if (discardNewlines && (serialChar != fieldSeparator))
-        if ((serialChar == '\n') || (serialChar == '\r'))
+      if (discardNewlines && (serialChar != fieldSeparator)) {
+        if ((serialChar == '\n') || (serialChar == '\r')) {
           reset();
+	}
+      }
     }
   }
 
@@ -267,30 +279,38 @@ void HanMessenger::reset() {
 // if the arguments in the future could be passed in as int/long/float etc
 // then it might make sense to use the above writeReal????() methods
 // I've removed them for now.
-char* HanMessenger::sendCmd(
+boolean HanMessenger::sendCmd(
   int cmdId, char *msg, 
   boolean reqAc, 
-  char *replyBuff, int butSize, 
   int timeout, int retryCount
 ) {
-  int tryCount = 0;  
+
+  // pause processing
   pauseProcessing = true;
+
+  // send command to remotes
   //*stream << cmdId << field_separator << msg << endl;
   stream->print(cmdId);
   stream->print(fieldSeparator);
   stream->print(msg);
   stream->print(commandSeparator);
+
+  // append newline to command, if necessary
   if (printNewlines)
     stream->println(); // should append BOTH \r\n
+
+  // handle reply blocking, if necessary
+  boolean success = true;
+  int tryCount = 0;  
   if (reqAc) {    
     do {
-      blockedTillReply(timeout);
-      //strcpy(replyBuff, buf;
-    } while( tryCount < retryCount);
+      success = blockedTillReply(timeout);
+    } while(!success && (tryCount < retryCount));
   }
   
+  // return success flag
   pauseProcessing = false;
-  return NULL;
+  return success;
 }
 
 //------------------------------------------------------------------------------

@@ -117,10 +117,9 @@ public:
   void print_LF_CR();
   int readInt();
   char readChar();
-  char* sendCmd(int cmdId, char *msg, 
-		boolean reqAc = false, 
-		char *replyBuff = NULL, int butSize = 0, 
-		int timeout = DEFAULT_TIMEOUT, int retryCount = 10);
+  boolean sendCmd(int cmdId, char *msg, 
+                  boolean reqAc = false, 
+                  int timeout = DEFAULT_TIMEOUT, int retryCount = 10);
   void sendCommand(char *command, char *data);
   void sendCommand(int cmdId, char *msg);
   void sendCommand(int cmdId, char *msg, int addr);
