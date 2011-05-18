@@ -127,7 +127,7 @@ void valve_on_msg() {
   if (addr > 0) {
     relays[addr - 1] = RELAY_ON;
     updateRelays();
-    hanmsgr.sendCommand(kACK, "Relay [%d] turned off", addr);
+    hanmsgr.sendCommand(kACK, "Relay [%d] turned on", addr);
   } 
   
   // turn all relay on
